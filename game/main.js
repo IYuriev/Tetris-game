@@ -13,7 +13,12 @@ const CELL_REMOVE_CLASS_DELAY = 500;
 
 let requestId;
 let timeoutId;
-let isPaused = false;
+let isPaused = true;
+
+const player = {
+  name: '',
+  record: 0,
+};
 
 const tetris = new Tetris();
 const cells = document.querySelectorAll('.grid>div');
@@ -31,10 +36,20 @@ initKeydown();
 moveDown();
 
 function initKeydown() {
-  document.addEventListener('keydown', keyActions);
+  document.addEventListener('keydown', (event) => {
+    if (event.code === 'Escape') {
+      pause();
+    } else if (!isPaused) {
+      const action = keyActions.get(event.key);
+      if (action) {
+        action();
+      }
+    }
+  });
 }
 
 function moveDown() {
+  if (isPaused) return;
   tetris.moveTetrominoDown();
   draw();
   stopLoop();
@@ -46,21 +61,25 @@ function moveDown() {
 }
 
 function moveLeft() {
+  if (isPaused) return;
   tetris.moveTetrominoLeft();
   draw();
 }
 
 function moveRight() {
+  if (isPaused) return;
   tetris.moveTetrominoRight();
   draw();
 }
 
 function rotate() {
+  if (isPaused) return;
   tetris.rotateTetromino();
   draw();
 }
 
 function dropDown() {
+  if (isPaused) return;
   tetris.dropTetrominoDown();
   draw();
   stopLoop();
@@ -89,8 +108,8 @@ function draw() {
   drawTetromino();
   drawGhostTetromino();
   document.getElementById(
-    'cleared-lines-counter',
-  ).textContent = `Cleared Lines: ${tetris.clearedLines}`;
+    'score-counter',
+  ).textContent = `Score: ${tetris.clearedLines}`;
 }
 
 function drawPlayfield() {
@@ -137,7 +156,16 @@ function drawGhostTetromino() {
 function gameOver() {
   stopLoop();
   document.removeEventListener('keydown', keyActions);
+  updateRecord();
   gameOverAnimation();
+}
+
+function updateRecord() {
+  if (tetris.clearedLines > player.record) {
+    player.record = tetris.clearedLines;
+    alert('New record!');
+  }
+  playerRecordSpan.textContent = player.record;
 }
 
 function gameOverAnimation() {
@@ -176,17 +204,50 @@ function pause() {
   }
 }
 
-document.addEventListener('keydown', (event) => {
-  if (event.code === 'Escape') {
-    pause();
-  }
+const startBtn = document.querySelector('.start');
+const background = document.querySelector('.background');
+
+startBtn.addEventListener('click', (event) => {
+  event.preventDefault();
+  background.classList.add('close');
+  isPaused = false;
+  startLoop();
 });
 
-document.addEventListener('keydown', (event) => {
+const name = document.querySelector("input[type='text']");
+name.addEventListener('input', (event) => {
+  player.name = event.target.value;
+});
+
+const profileButton = document.getElementById('profileButton');
+const profileModal = document.getElementById('profileModal');
+const playerNameSpan = document.getElementById('playerName');
+const playerRecordSpan = document.getElementById('playerRecord');
+
+function openProfile() {
   if (!isPaused) {
-    const action = keyActions.get(event.key);
-    if (action) {
-      action();
+    pause();
+  }
+  profileModal.style.display = 'block';
+  playerNameSpan.textContent = player.name || 'Unknown';
+  playerRecordSpan.textContent = player.record || '0';
+}
+
+profileButton.addEventListener('click', () => {
+  if (!isPaused) {
+    pause();
+  }
+  profileModal.style.display = 'block';
+  playerNameSpan.textContent = player.name || 'Unknown';
+  playerRecordSpan.textContent = player.record || '0';
+});
+
+window.addEventListener('keydown', (event) => {
+  if (event.code === 'Escape') {
+    if (profileModal.style.display === 'block') {
+      profileModal.style.display = 'none';
+    } else {
+      openProfile();
     }
   }
 });

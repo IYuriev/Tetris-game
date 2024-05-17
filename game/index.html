@@ -215,9 +215,29 @@
         <div></div>
       </div>
       <div class="info-container">
-        <div id="cleared-lines-counter">Cleared Lines: 0</div>
+        <div id="score-counter">Score: 0</div>
       </div>
     </div>
+    <div class="background">
+      <div class="auth-container">
+        <form>
+          <h1>Enter your name:</h1>
+          <input type="text" name="text" />
+          <button type="submit" class="start">Start</button>
+        </form>
+      </div>
+    </div>
+    <button id="profileButton" class="profile-button">&#128100;</button>
+    <div id="profileModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <p>Name: <span id="playerName"></span></p>
+        <p>Record: <span id="playerRecord"></span></p>
+      </div>
+    </div>
+    <button class="restart" id="restartButton" style="display: none">
+      Restart
+    </button>
     <script type="module" src="./utilities.js"></script>
     <script type="module" src="./tetris.js"></script>
     <script type="module" src="./main.js"></script>
