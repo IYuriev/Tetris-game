@@ -14,14 +14,24 @@ const CELL_REMOVE_CLASS_DELAY = 500;
 let requestId;
 let timeoutId;
 let isPaused = true;
+let tetris;
+let isGameStarted = false;
 
 const player = {
   name: '',
   record: 0,
 };
 
-const tetris = new Tetris();
+const restartButton = document.getElementById('restartButton');
 const cells = document.querySelectorAll('.grid>div');
+
+const startBtn = document.querySelector('.start');
+const background = document.querySelector('.background');
+const name = document.querySelector("input[type='text']");
+const profileButton = document.getElementById('profileButton');
+const profileModal = document.getElementById('profileModal');
+const playerNameSpan = document.getElementById('playerName');
+const playerRecordSpan = document.getElementById('playerRecord');
 
 const keyActions = new Map([
   ['ArrowUp', rotate],
@@ -32,20 +42,43 @@ const keyActions = new Map([
 ]);
 
 initKeydown();
-
-moveDown();
+initEventListeners();
 
 function initKeydown() {
   document.addEventListener('keydown', (event) => {
-    if (event.code === 'Escape') {
-      pause();
-    } else if (!isPaused) {
-      const action = keyActions.get(event.key);
-      if (action) {
-        action();
+    if (document.activeElement !== name && isGameStarted) {
+      if (event.code === 'Escape') {
+        pause();
+      } else if (!isPaused) {
+        const action = keyActions.get(event.key);
+        if (action) {
+          action();
+        }
       }
     }
   });
+}
+
+function initEventListeners() {
+  startBtn.addEventListener('click', (event) => {
+    event.preventDefault();
+    if (player.name.trim() !== '') {
+      startGame();
+      background.classList.add('close');
+      isPaused = false;
+      isGameStarted = true;
+      startLoop();
+    } else {
+      alert('Please enter your name to start the game.');
+    }
+  });
+}
+
+function startGame() {
+  tetris = new Tetris();
+  isPaused = false;
+  draw();
+  startLoop();
 }
 
 function moveDown() {
@@ -178,10 +211,10 @@ function gameOverAnimation() {
     );
   }
 
-  setTimeout(
-    drawSad,
-    filledCells.length * CELL_HIDE_DELAY + GAME_OVER_ANIMATION_DELAY,
-  );
+  setTimeout(() => {
+    drawSad();
+    showRestartButton();
+  }, filledCells.length * CELL_HIDE_DELAY + GAME_OVER_ANIMATION_DELAY);
 }
 
 function drawSad() {
@@ -195,6 +228,21 @@ function drawSad() {
   }
 }
 
+function showRestartButton() {
+  restartButton.style.display = 'block';
+}
+
+function resetGame() {
+  restartButton.style.display = 'none';
+  tetris = new Tetris();
+  cells.forEach((cell) => cell.removeAttribute('class'));
+  isPaused = false;
+  isGameStarted = true;
+  startGame();
+}
+
+restartButton.addEventListener('click', resetGame);
+
 function pause() {
   isPaused = !isPaused;
   if (isPaused) {
@@ -204,9 +252,6 @@ function pause() {
   }
 }
 
-const startBtn = document.querySelector('.start');
-const background = document.querySelector('.background');
-
 startBtn.addEventListener('click', (event) => {
   event.preventDefault();
   background.classList.add('close');
@@ -214,15 +259,9 @@ startBtn.addEventListener('click', (event) => {
   startLoop();
 });
 
-const name = document.querySelector("input[type='text']");
 name.addEventListener('input', (event) => {
   player.name = event.target.value;
 });
-
-const profileButton = document.getElementById('profileButton');
-const profileModal = document.getElementById('profileModal');
-const playerNameSpan = document.getElementById('playerName');
-const playerRecordSpan = document.getElementById('playerRecord');
 
 function openProfile() {
   if (!isPaused) {

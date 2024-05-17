@@ -241,3 +241,27 @@ body {
 #playerRecord {
   font-style: italic;
 }
+
+#restartButton {
+  display: none;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #4caf50;
+  color: white;
+  padding: 20px 40px;
+  text-align: center;
+  text-decoration: none;
+  font-size: 20px;
+  cursor: pointer;
+  border: none;
+  border-radius: 10px;
+  outline: none;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+#restartButton:hover {
+  background-color: #45a049;
+  transform: translate(-50%, -50%) scale(1.05);
+}
