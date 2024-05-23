@@ -4,34 +4,28 @@ import {
   PLAYFIELD_COLUMNS,
   PLAYFIELD_ROWS,
   SAD,
+  GAME_OVER_ANIMATION_DELAY,
+  CELL_HIDE_DELAY,
+  CELL_REMOVE_CLASS_DELAY,
+  player,
+  restartButton,
+  cells,
+  startBtn,
+  background,
+  name,
+  profileButton,
+  profileModal,
+  playerNameSpan,
+  playerRecordSpan,
 } from './utilities.js';
-
-const MOVE_DOWN_DELAY = 700;
-const GAME_OVER_ANIMATION_DELAY = 1000;
-const CELL_HIDE_DELAY = 10;
-const CELL_REMOVE_CLASS_DELAY = 500;
 
 let requestId;
 let timeoutId;
 let isPaused = true;
 let tetris;
 let isGameStarted = false;
-
-const player = {
-  name: '',
-  record: 0,
-};
-
-const restartButton = document.getElementById('restartButton');
-const cells = document.querySelectorAll('.grid>div');
-
-const startBtn = document.querySelector('.start');
-const background = document.querySelector('.background');
-const name = document.querySelector("input[type='text']");
-const profileButton = document.getElementById('profileButton');
-const profileModal = document.getElementById('profileModal');
-const playerNameSpan = document.getElementById('playerName');
-const playerRecordSpan = document.getElementById('playerRecord');
+let moveDownDelay = 700;
+let level = 0;
 
 const keyActions = new Map([
   ['ArrowUp', rotate],
@@ -77,6 +71,8 @@ function initEventListeners() {
 function startGame() {
   tetris = new Tetris();
   isPaused = false;
+  level = 0;
+  moveDownDelay = 700;
   draw();
   startLoop();
 }
@@ -124,10 +120,13 @@ function dropDown() {
 }
 
 function startLoop() {
-  timeoutId = setTimeout(
-    () => (requestId = requestAnimationFrame(moveDown)),
-    MOVE_DOWN_DELAY,
-  );
+  if (levelUp()) {
+    clearTimeout(timeoutId);
+  }
+  timeoutId = setTimeout(() => {
+    requestId = requestAnimationFrame(moveDown);
+  }, moveDownDelay);
+  console.log(moveDownDelay);
 }
 
 function stopLoop() {
@@ -252,12 +251,15 @@ function pause() {
   }
 }
 
-startBtn.addEventListener('click', (event) => {
-  event.preventDefault();
-  background.classList.add('close');
-  isPaused = false;
-  startLoop();
-});
+function levelUp() {
+  const newLevel = Math.floor(tetris.clearedLines / 10);
+  if (newLevel > level) {
+    level = newLevel;
+    moveDownDelay = Math.max(400, moveDownDelay - 30);
+    return true;
+  }
+  return false;
+}
 
 name.addEventListener('input', (event) => {
   player.name = event.target.value;
@@ -272,14 +274,7 @@ function openProfile() {
   playerRecordSpan.textContent = player.record || '0';
 }
 
-profileButton.addEventListener('click', () => {
-  if (!isPaused) {
-    pause();
-  }
-  profileModal.style.display = 'block';
-  playerNameSpan.textContent = player.name || 'Unknown';
-  playerRecordSpan.textContent = player.record || '0';
-});
+profileButton.addEventListener('click', openProfile);
 
 window.addEventListener('keydown', (event) => {
   if (event.code === 'Escape') {
