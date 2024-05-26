@@ -1,6 +1,5 @@
 export const PLAYFIELD_COLUMNS = 10;
 export const PLAYFIELD_ROWS = 20;
-// export const MOVE_DOWN_DELAY = 800;
 export const GAME_OVER_ANIMATION_DELAY = 1000;
 export const CELL_HIDE_DELAY = 10;
 export const CELL_REMOVE_CLASS_DELAY = 600;
