@@ -19,13 +19,15 @@ import {
   playerRecordSpan,
 } from './utilities.js';
 
-let requestId;
-let timeoutId;
-let isPaused = true;
-let tetris;
-let isGameStarted = false;
-let moveDownDelay = 700;
-let level = 0;
+const gameState = {
+  requestId: null,
+  timeoutId: null,
+  isPaused: true,
+  tetris: null,
+  isGameStarted: false,
+  moveDownDelay: 700,
+  level: 0,
+};
 
 const keyActions = new Map([
   ['ArrowUp', rotate],
@@ -40,10 +42,10 @@ initEventListeners();
 
 function initKeydown() {
   document.addEventListener('keydown', (event) => {
-    if (document.activeElement !== name && isGameStarted) {
+    if (document.activeElement !== name && gameState.isGameStarted) {
       if (event.code === 'Escape') {
         pause();
-      } else if (!isPaused) {
+      } else if (!gameState.isPaused) {
         const action = keyActions.get(event.key);
         if (action) {
           action();
@@ -59,8 +61,8 @@ function initEventListeners() {
     if (player.name.trim() !== '') {
       startGame();
       background.classList.add('close');
-      isPaused = false;
-      isGameStarted = true;
+      gameState.isPaused = false;
+      gameState.isGameStarted = true;
       startLoop();
     } else {
       alert('Please enter your name to start the game.');
@@ -69,69 +71,69 @@ function initEventListeners() {
 }
 
 function startGame() {
-  tetris = new Tetris();
-  isPaused = false;
-  level = 0;
-  moveDownDelay = 700;
+  gameState.tetris = new Tetris();
+  gameState.isPaused = false;
+  gameState.level = 0;
+  gameState.moveDownDelay = 700;
   draw();
   startLoop();
 }
 
 function moveDown() {
-  if (isPaused) return;
-  tetris.moveTetrominoDown();
+  if (gameState.isPaused) return;
+  gameState.tetris.moveTetrominoDown();
   draw();
   stopLoop();
   startLoop();
 
-  if (tetris.isGameOver) {
+  if (gameState.tetris.isGameOver) {
     gameOver();
   }
 }
 
 function moveLeft() {
-  if (isPaused) return;
-  tetris.moveTetrominoLeft();
+  if (gameState.isPaused) return;
+  gameState.tetris.moveTetrominoLeft();
   draw();
 }
 
 function moveRight() {
-  if (isPaused) return;
-  tetris.moveTetrominoRight();
+  if (gameState.isPaused) return;
+  gameState.tetris.moveTetrominoRight();
   draw();
 }
 
 function rotate() {
-  if (isPaused) return;
-  tetris.rotateTetromino();
+  if (gameState.isPaused) return;
+  gameState.tetris.rotateTetromino();
   draw();
 }
 
 function dropDown() {
-  if (isPaused) return;
-  tetris.dropTetrominoDown();
+  if (gameState.isPaused) return;
+  gameState.tetris.dropTetrominoDown();
   draw();
   stopLoop();
   startLoop();
 
-  if (tetris.isGameOver) {
+  if (gameState.tetris.isGameOver) {
     gameOver();
   }
 }
 
 function startLoop() {
   if (levelUp()) {
-    clearTimeout(timeoutId);
+    clearTimeout(gameState.timeoutId);
   }
-  timeoutId = setTimeout(() => {
-    requestId = requestAnimationFrame(moveDown);
-  }, moveDownDelay);
-  console.log(moveDownDelay);
+  gameState.timeoutId = setTimeout(() => {
+    gameState.requestId = requestAnimationFrame(moveDown);
+  }, gameState.moveDownDelay);
+  console.log(gameState.moveDownDelay);
 }
 
 function stopLoop() {
-  cancelAnimationFrame(requestId);
-  clearTimeout(timeoutId);
+  cancelAnimationFrame(gameState.requestId);
+  clearTimeout(gameState.timeoutId);
 }
 
 function draw() {
@@ -141,14 +143,14 @@ function draw() {
   drawGhostTetromino();
   document.getElementById(
     'score-counter',
-  ).textContent = `Score: ${tetris.clearedLines}`;
+  ).textContent = `Score: ${gameState.tetris.clearedLines}`;
 }
 
 function drawPlayfield() {
   for (let row = 0; row < PLAYFIELD_ROWS; row++) {
     for (let column = 0; column < PLAYFIELD_COLUMNS; column++) {
-      if (!tetris.playField[row][column]) continue;
-      const name = tetris.playField[row][column];
+      if (!gameState.tetris.playField[row][column]) continue;
+      const name = gameState.tetris.playField[row][column];
       const cellIndex = convertPositionToIndex(row, column);
       cells[cellIndex].classList.add(name);
     }
@@ -156,15 +158,15 @@ function drawPlayfield() {
 }
 
 function drawTetromino() {
-  const name = tetris.tetromino.name;
-  const tetrominoMatrixSize = tetris.tetromino.matrix.length;
+  const name = gameState.tetris.tetromino.name;
+  const tetrominoMatrixSize = gameState.tetris.tetromino.matrix.length;
   for (let row = 0; row < tetrominoMatrixSize; row++) {
     for (let column = 0; column < tetrominoMatrixSize; column++) {
-      if (!tetris.tetromino.matrix[row][column]) continue;
-      if (tetris.tetromino.row + row < 0) continue;
+      if (!gameState.tetris.tetromino.matrix[row][column]) continue;
+      if (gameState.tetris.tetromino.row + row < 0) continue;
       const cellIndex = convertPositionToIndex(
-        tetris.tetromino.row + row,
-        tetris.tetromino.column + column,
+        gameState.tetris.tetromino.row + row,
+        gameState.tetris.tetromino.column + column,
       );
       cells[cellIndex].classList.add(name);
     }
@@ -172,13 +174,13 @@ function drawTetromino() {
 }
 
 function drawGhostTetromino() {
-  const tetrominoMatrixSize = tetris.tetromino.matrix.length;
+  const tetrominoMatrixSize = gameState.tetris.tetromino.matrix.length;
   for (let row = 0; row < tetrominoMatrixSize; row++) {
     for (let column = 0; column < tetrominoMatrixSize; column++) {
-      if (!tetris.tetromino.matrix[row][column]) continue;
-      if (tetris.tetromino.ghostRow + row < 0) continue;
-      const cellRow = tetris.tetromino.ghostRow + row;
-      const cellColumn = tetris.tetromino.ghostColumn + column;
+      if (!gameState.tetris.tetromino.matrix[row][column]) continue;
+      if (gameState.tetris.tetromino.ghostRow + row < 0) continue;
+      const cellRow = gameState.tetris.tetromino.ghostRow + row;
+      const cellColumn = gameState.tetris.tetromino.ghostColumn + column;
       const cellIndex = convertPositionToIndex(cellRow, cellColumn);
       cells[cellIndex].classList.add('ghost');
     }
@@ -193,8 +195,8 @@ function gameOver() {
 }
 
 function updateRecord() {
-  if (tetris.clearedLines > player.record) {
-    player.record = tetris.clearedLines;
+  if (gameState.tetris.clearedLines > player.record) {
+    player.record = gameState.tetris.clearedLines;
     alert('New record!');
   }
   playerRecordSpan.textContent = player.record;
@@ -233,18 +235,18 @@ function showRestartButton() {
 
 function resetGame() {
   restartButton.style.display = 'none';
-  tetris = new Tetris();
+  gameState.tetris = new Tetris();
   cells.forEach((cell) => cell.removeAttribute('class'));
-  isPaused = false;
-  isGameStarted = true;
+  gameState.isPaused = false;
+  gameState.isGameStarted = true;
   startGame();
 }
 
 restartButton.addEventListener('click', resetGame);
 
 function pause() {
-  isPaused = !isPaused;
-  if (isPaused) {
+  gameState.isPaused = !gameState.isPaused;
+  if (gameState.isPaused) {
     stopLoop();
   } else {
     startLoop();
@@ -252,10 +254,10 @@ function pause() {
 }
 
 function levelUp() {
-  const newLevel = Math.floor(tetris.clearedLines / 10);
-  if (newLevel > level) {
-    level = newLevel;
-    moveDownDelay = Math.max(400, moveDownDelay - 30);
+  const newLevel = Math.floor(gameState.tetris.clearedLines / 10);
+  if (newLevel > gameState.level) {
+    gameState.level = newLevel;
+    gameState.moveDownDelay = Math.max(400, gameState.moveDownDelay - 30);
     return true;
   }
   return false;
@@ -266,7 +268,7 @@ name.addEventListener('input', (event) => {
 });
 
 function openProfile() {
-  if (!isPaused) {
+  if (!gameState.isPaused) {
     pause();
   }
   profileModal.style.display = 'block';
