@@ -7,6 +7,9 @@ import {
   GAME_OVER_ANIMATION_DELAY,
   CELL_HIDE_DELAY,
   CELL_REMOVE_CLASS_DELAY,
+  MAX_LEVEL,
+  SPEED_CHANGE,
+  LEVEL_CHANGE,
   player,
   restartButton,
   cells,
@@ -254,10 +257,13 @@ function pause() {
 }
 
 function levelUp() {
-  const newLevel = Math.floor(gameState.tetris.clearedLines / 10);
+  const newLevel = Math.floor(gameState.tetris.clearedLines / LEVEL_CHANGE);
   if (newLevel > gameState.level) {
     gameState.level = newLevel;
-    gameState.moveDownDelay = Math.max(400, gameState.moveDownDelay - 30);
+    gameState.moveDownDelay = Math.max(
+      MAX_LEVEL,
+      gameState.moveDownDelay - SPEED_CHANGE,
+    );
     return true;
   }
   return false;
