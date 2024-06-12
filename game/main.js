@@ -257,6 +257,7 @@ function pause() {
 }
 
 function levelUp() {
+<<<<<<< HEAD
   const newLevel = Math.floor(gameState.tetris.clearedLines / LEVEL_CHANGE);
   if (newLevel > gameState.level) {
     gameState.level = newLevel;
@@ -264,6 +265,12 @@ function levelUp() {
       MAX_LEVEL,
       gameState.moveDownDelay - SPEED_CHANGE,
     );
+=======
+  const newLevel = Math.floor(gameState.tetris.clearedLines / 10);
+  if (newLevel > gameState.level) {
+    gameState.level = newLevel;
+    gameState.moveDownDelay = Math.max(400, gameState.moveDownDelay - 30);
+>>>>>>> 463ed4bbb0b72fb3044d789a09bbcb6d0ebec913
     return true;
   }
   return false;
